@@ -113,7 +113,7 @@ func (c *container) initComponent(component any) error {
 
 	if init, ok := component.(Initializer); ok {
 		if err := init.Initialize(); err != nil {
-			return err
+			return fmt.Errorf("%s initialization failed: %v", t, err)
 		}
 	}
 
