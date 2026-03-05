@@ -113,6 +113,10 @@ func (c *container) initComponent(component any) error {
 
 	if init, ok := component.(Initializer); ok {
 		if err := init.Initialize(); err != nil {
+			// 初始化失败，尝试调用Finalize清理资源，避免资源泄漏
+			if fin, ok := component.(Finalizer); ok {
+				fin.Finalize()
+			}
 			return fmt.Errorf("%s initialization failed: %v", t, err)
 		}
 	}
@@ -130,6 +134,8 @@ func (c *container) initComponent(component any) error {
 func (c *container) Initialize() error {
 	for _, component := range c.components {
 		if err := c.initComponent(component); err != nil {
+			// 初始化失败时，调用Finalize方法使已完成初始化的组件释放资源，避免资源泄漏
+			c.Finalize()
 			return err
 		}
 	}
